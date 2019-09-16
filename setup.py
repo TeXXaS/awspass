@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 import setuptools
 
 with open("README.md", "r") as fh:
@@ -5,7 +7,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="awspass",
-    version="0.1.0b5",
+    version="0.1.0b11",
     author="Michał Zaborowski",
     author_email="michal@zaborowski.info.pl",
     description="Access keys management for AWS",
@@ -15,6 +17,11 @@ setuptools.setup(
     url="https://texxas.io/tag/awspass/",
     python_requires='>=3.6', # f-strings are nice
     packages=['awspass'],
+    install_requires=[
+		'boto3==1.9.225',
+		'passpy==1.0rc2',
+        'colorama==0.3.9'
+    ],
     include_package_data=True,
     scripts=['awspass/awspass'],
     classifiers=[
@@ -26,3 +33,4 @@ setuptools.setup(
         "Operating System :: POSIX :: Linux"
      ],
 )
+

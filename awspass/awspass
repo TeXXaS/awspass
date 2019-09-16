@@ -2,11 +2,18 @@
 # -*- coding: utf-8 -*-
 # vim: tabstop=4 expandtab shiftwidth=4 softtabstop=4 smarttab
 
+import os
+os.environ["GIT_PYTHON_REFRESH"] = "quiet"
+
 import boto3
 import os.path
 from passpy import Store
 from datetime import datetime,timedelta
 import click
+from colorama import init as colorama_init
+from colorama import Fore, Style
+
+colorama_init()
 
 ENVS = ['test', 'qa', 'prod']
 
@@ -64,7 +71,7 @@ class Account:
         return password[:s] + '*'*len(password[s:-e]) + password[-e:]
 
 
-    def instantiate_iam(self):
+    def _instantiate_iam(self):
         self.iam = boto3.client('iam',
                                 aws_access_key_id=self.local['aws_access_key_id'],
                                 aws_secret_access_key=self.local['aws_secret_access_key'])
@@ -72,7 +79,7 @@ class Account:
     def fetch_keys(self):
         print(". fetching keys")
         if self.iam is None:
-            self.instantiate_iam()
+            self._instantiate_iam()
         response = self.iam.list_access_keys()
         keys = response
         keys_data = []
@@ -85,7 +92,7 @@ class Account:
         """Create new key"""
         print('. creating new key')
         if self.iam is None:
-            self.instantiate_iam()
+            self._instantiate_iam()
         response = self.iam.create_access_key(UserName=user_name)
         print(f"create new access key - response "
               f"httpCode:{response['ResponseMetadata']['HTTPStatusCode']} responseId:{response['ResponseMetadata']['RequestId']} "
@@ -105,7 +112,7 @@ class Account:
         """remove key"""
         print('. removing oldest')
         if self.iam is None:
-            self.instantiate_iam()
+            self._instantiate_iam()
         response = self.iam.delete_access_key(
             UserName=key['user_name'],
             AccessKeyId=key['access_key_id'])
@@ -116,7 +123,7 @@ class Account:
         """Find oldest key, and call roll on it"""
         print(". rolling keys")
         if self.iam is None:
-            self.instantiate_iam()
+            self._instantiate_iam()
         if self.keys is None:
             self.fetch_keys()
 
@@ -249,4 +256,10 @@ cli.add_command(use)
 cli.add_command(set_credentials)
 
 if __name__ == '__main__':
+    if not store.is_init():
+        print(Fore.RED + "Pass store is not initialized.")
+        print("You need gpg key, and pass store initialized.")
+        print("Please visit https://texxas.io/2018/12/aws-pass-tool.html - for step by step procedure.")
+        print(Style.RESET_ALL)
+        exit(1)
     cli()
